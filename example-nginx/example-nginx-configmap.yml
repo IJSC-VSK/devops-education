@@ -1,0 +1,8 @@
+---
+apiVersion: v1
+data:
+  demo_field: "demo-value"
+kind: ConfigMap 
+metadata:
+  name: example-nginx-configmap
+type: kubernetes.io/tls
