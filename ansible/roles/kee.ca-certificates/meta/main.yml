@@ -1,0 +1,27 @@
+---
+galaxy_info:
+  author: Eldar Kerimov
+  description: Adding CA certificates to systems store role
+  license: BSD
+
+  min_ansible_version: 2.0
+
+  platforms:
+    
+  - name: EL
+    versions:
+    - all
+
+  - name: Fedora
+    versions:
+    - all
+
+  - name: Ubuntu
+    versions:
+    - all
+
+  galaxy_tags:
+    - system
+    - certificates
+
+dependencies: []

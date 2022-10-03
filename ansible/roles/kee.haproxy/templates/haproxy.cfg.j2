@@ -1,0 +1,98 @@
+#---------------------------------------------------------------------
+# Global settings
+#---------------------------------------------------------------------
+
+global
+{% if haproxy_socket != '' %}
+    stats socket {{ haproxy_socket }} level admin
+{% endif %}
+    log             127.0.0.1:514 local2
+{% if haproxy_chroot != '' %}
+    chroot {{ haproxy_chroot }}
+{% endif %}
+    pidfile         /var/run/haproxy.pid
+    user {{ haproxy_user }}
+    group {{ haproxy_group }}
+    daemon
+
+{% for global_var in haproxy_global_vars %}
+    {{ global_var }}
+{% endfor %}
+
+#---------------------------------------------------------------------
+# common defaults that all the 'listen' and 'backend' sections will
+# use if not designated in their block
+#---------------------------------------------------------------------
+
+defaults
+    mode                    http
+    log                     global
+    option                  httplog
+    option                  log-health-checks
+    option                  dontlognull
+    option redispatch       1
+    option http-server-close
+    option http-use-htx
+    option forwardfor       except 127.0.0.0/8
+    retries                 3
+    retry-on                all-retryable-errors
+    timeout http-request    10s
+    timeout queue           1m
+    timeout connect         10s
+    timeout client          1m
+    timeout server          1m
+    timeout http-keep-alive 10s
+    timeout check           10s
+
+#---------------------------------------------------------------------
+# Frontends which proxys to the backends
+#---------------------------------------------------------------------
+
+{% for frontend in haproxy_frontend %}
+frontend {{ frontend.name }}
+{% if frontend.description is defined %}
+    description {{ frontend.description }}
+{% endif %}
+{% if frontend.mode is defined %}
+    mode {{ frontend.mode }}
+{% endif %}
+{% for frontend_var in frontend.frontend_vars %}
+    {{ frontend_var }}
+{% endfor %}
+{% endfor %}
+
+frontend stats
+    description Statistics
+    bind :8404
+
+    maxconn 100
+    timeout client  30s
+
+    monitor-uri     /monitoruri
+
+    # Enable Prometheus Exporter
+    http-request set-log-level silent
+    http-request use-service prometheus-exporter if { path /metrics }
+
+    # Stats
+    stats enable
+    stats uri /stats
+    stats refresh 10s
+
+#---------------------------------------------------------------------
+# Backend servers
+#---------------------------------------------------------------------
+
+{% for backend in haproxy_backend %}
+backend {{ backend.name }}
+{% if backend.description is defined %}
+    description {{ backend.description }}
+{% endif %}
+{% if backend.mode is defined %}
+    mode {{ backend.mode }}
+{% endif %}
+
+{% for backend_var in backend.backend_vars %}
+    {{ backend_var }}
+{% endfor %}
+{% endfor %}

@@ -1,0 +1,84 @@
+#---------------------------------------------------------------------
+# Global settings
+#---------------------------------------------------------------------
+
+global
+    maxconn         10000
+{% if haproxy_socket != '' %}
+    stats socket {{ haproxy_socket }} level admin
+{% endif %}
+    log             127.0.0.1:514 local2
+{% if haproxy_chroot != '' %}
+    chroot {{ haproxy_chroot }}
+{% endif %}
+    pidfile         /var/run/haproxy.pid
+    user {{ haproxy_user }}
+    group {{ haproxy_group }}
+    daemon
+
+{% for global_var in haproxy_global_vars %}
+    {{ global_var }}
+{% endfor %}
+
+#---------------------------------------------------------------------
+# common defaults that all the 'listen' and 'backend' sections will
+# use if not designated in their block
+#---------------------------------------------------------------------
+
+defaults
+    log global
+    mode tcp
+    retries 2
+    timeout client 30m
+    timeout connect 4s
+    timeout server 30m
+    timeout check 5s
+
+#---------------------------------------------------------------------
+# Frontends which proxys to the backends
+#---------------------------------------------------------------------
+
+frontend {{ haproxy_frontend_name }}
+    bind {{ haproxy_frontend_bind_address }}:{{ haproxy_frontend_port }}
+
+    mode {{ haproxy_frontend_mode }}
+    maxconn         5000
+
+    default_backend {{ haproxy_backend_name }}
+
+
+frontend stats
+    bind            :8404
+
+    maxconn         100
+    timeout client  30s
+
+    monitor-uri     /monitoruri
+
+    # Enable Prometheus Exporter
+    http-request set-log-level silent
+    http-request use-service prometheus-exporter if { path /metrics }
+
+    # Stats
+    stats enable
+    stats uri /stats
+    stats refresh 10s
+
+#---------------------------------------------------------------------
+# Backend servers
+#---------------------------------------------------------------------
+
+backend {{ haproxy_backend_name }}
+    mode {{ haproxy_backend_mode }}
+    balance {{ haproxy_backend_balance_method }}
+
+    option prefer-last-server
+{% if haproxy_backend_httpchk != '' %}
+    option httpchk {{ haproxy_backend_httpchk }}
+{% endif %}
+    http-request disable-l7-retry if METH_POST
+
+{% for backend in haproxy_backend_servers %}
+    server {{ backend.name }} {{ backend.address }} check inter 1000
+{% endfor %}
+

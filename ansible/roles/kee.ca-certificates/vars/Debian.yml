@@ -1,0 +1,10 @@
+---
+ca_certificates_directory: "/usr/local/share/ca-certificates"
+ca_certificates_directory_mode: "2775"
+ca_certificates_directory_owner: "root"
+ca_certificates_directory_group: "staff"
+ca_certificates_file_mode: "0644"
+ca_certificates_file_owner: "root"
+ca_certificates_file_group: "staff"
+
+ca_certificates_update: "/usr/sbin/update-ca-certificates"

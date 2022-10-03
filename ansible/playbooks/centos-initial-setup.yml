@@ -1,0 +1,103 @@
+# List all available tags qansible-playbook centos-initial-setup.yml --list-tags
+---
+- name: Initial CentOS Linux setup
+  hosts: all 
+  become: true
+  
+  tasks:
+  - name: Disable firewalld 
+    systemd: name=firewalld enabled=no
+    tags:
+     - disable-firewalld
+  
+  - name: Stop firewalld
+    systemd: name=firewalld state=stopped
+    ignore_errors: yes 
+    tags:
+     - disable-firewalld
+
+  - name: Put SELinux in permissive mode
+    selinux:
+      policy: targeted
+      state: permissive
+    tags:
+     - disable-selinux
+
+  - name: "Install CA Certs"
+    include_role:
+      name: kee.ca-certificates
+      apply: 
+        tags: cacerts
+    vars:
+      ca_certificates: cavsk.crt
+    tags: cacerts
+
+  - name: Find .repo files
+    find:
+      paths: /etc/yum.repos.d/
+      patterns: '*.repo'
+    register: yum_repos_list
+    tags: yum_repos
+
+  - name: Remove existing .repo files
+    when: yum_repos_list is defined
+    file:
+      path: "{{ item.path }}"
+      state: absent
+    with_items: "{{ yum_repos_list.files }}"
+    tags: yum_repos
+
+  - name: "Remove repos RPM"
+    yum: state=absent name=Nexus-Marlin
+    tags: yum_repos
+
+  - name: "Install repos RPM"
+    yum: state=present name="https://artifactory.vsk.ru/artifactory/marlin-vsk-rpm/VSK-Marlin-1.1-1.el7.noarch.rpm" disablerepo="Centos*"
+    tags: yum_repos
+
+  - name: "Install packages for CentOS"
+    yum: state=present name={{ item }}
+    with_items:
+    - net-tools
+    - bind-utils
+    - sysstat
+    - dstat
+    - strace
+    - vim
+    - telnet
+    - wget
+    - lsof
+    - unzip
+    - bc
+    - tree
+    - git
+    - bash-completion
+    - yum-utils
+    - nc
+    tags: yum
+
+  - name: "Update all packages"
+    yum: name=* state=latest
+    tags: yum_update
+
+  - name: "Disable all default CentOS repos"
+    shell: "yum-config-manager --disable \\* && yum-config-manager --enable nexus\\*"
+    tags: yum_repos
+
+  - name: "Install Zabbix Agent 5"
+    include_role:
+      name: community.zabbix_agent
+      apply:
+        tags: zabbix-agent5
+    vars:
+      zabbix_agent_package: zabbix-agent
+      zabbix_sender_package: zabbix-sender
+      zabbix_get_package: zabbix-get
+      zabbix_repo: False
+      zabbix_agent_package_state: present
+      zabbix_agent_version: 5.0
+      zabbix_agent_server: zbx-app.vsk.ru
+      zabbix_agent_serveractive: zbx-app.vsk.ru
+      zabbix_agent_hostmetadata: linux marlin production
+      zabbix_install_pip_packages: False
+    tags: zabbix-agent5

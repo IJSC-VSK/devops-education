@@ -1,0 +1,56 @@
+---
+- name: Ensure HAProxy is installed.
+  yum: state=present name={{ haproxy_rpm  }}
+  tags:
+    - haproxy
+
+- name: Ensure HAProxy certs directory exists
+  file:
+    path: "{{ haproxy_certs_dir }}"
+    owner: root
+    group: root
+    state: directory
+    mode: 0755
+  tags:
+    - haproxy
+
+- name: Copy dhparam file
+  copy:
+    src: dhparam
+    dest: "{{ haproxy_config_dir }}/dhparam"
+    owner: root
+    group: root
+    mode: 0640
+  tags:
+    - haproxy
+
+- name: Copy certs
+  copy:
+    src: "{{ item }}"
+    dest: "{{ haproxy_certs_dir }}/{{ item | basename }}"
+    owner: root
+    group: root
+    mode: 0640
+  loop: "{{ haproxy_certs  }}"
+  tags:
+    - haproxy
+
+- name: Copy HAProxy configuration
+  template:
+    src: haproxy.cfg.j2
+    dest: "{{ haproxy_config_dir }}/haproxy.cfg"
+    owner: root
+    group: root
+    mode: 0644
+    validate: haproxy -f %s -c -q
+  notify: reload haproxy
+  tags:
+    - haproxy
+
+- name: Enable and start HAProxy
+  service:
+    name: haproxy
+    enabled: yes 
+    state: started 
+  tags:
+    - haproxy

@@ -1,0 +1,23 @@
+
+all:
+  children:
+    devops:
+      hosts:
+        192.168.156.101:
+      vars: 
+          haproxy_frontend:
+            - name: localhost
+              description: Localhost frontend
+              mode: http
+              frontend_vars:
+                - 'bind :80' 
+                - 'maxconn 10000' 
+                - ''
+                - 'default_backend python'
+          haproxy_backend:
+            - name: python
+              description: Python Backend
+              mode: http
+              backend_vars:
+                - 'balance roundrobin'
+                - 'server srv1 127.0.0.1:8000 check inter 1000'

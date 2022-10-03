@@ -1,0 +1,23 @@
+---
+- name: Include OS-specific variables.
+  include_vars: "{{ ansible_os_family }}.yml"
+
+- name: Ensure CA certificates directory exists
+  file:
+    state: directory
+    path: "{{ ca_certificates_directory }}"
+    owner: "{{ ca_certificates_directory_owner }}"
+    group: "{{ ca_certificates_directory_group }}"
+    mode: "{{ ca_certificates_directory_mode }}"
+
+- name: Install CA public certificates
+  copy:
+    src: "{{ item }}"
+    dest: "{{ ca_certificates_directory }}/{{ item }}"
+    owner: "{{ ca_certificates_file_owner }}"
+    group: "{{ ca_certificates_file_group }}"
+    mode: "{{ ca_certificates_file_mode }}"
+  with_items: "{{ ca_certificates }}"
+
+- name: Update CA certificates
+  command: "{{ ca_certificates_update }}"

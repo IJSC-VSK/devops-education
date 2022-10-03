@@ -1,0 +1,9 @@
+---
+- hosts: all
+  become: yes
+  become_user: root
+  become_method: sudo
+  vars:
+    haproxy_rpm: https://artifactory.vsk.ru/artifactory/marlin-vsk-rpm/haproxy-2.0.23-1.el7.x86_64.rpm
+  roles:
+    - kee.haproxy

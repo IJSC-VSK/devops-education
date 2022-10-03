@@ -1,0 +1,23 @@
+---
+galaxy_info:
+  author: Eldar Kerimov
+  description: Ansible HAProxy Role
+  license: BSD
+
+  min_ansible_version: 2.4
+
+  platforms:
+    
+  - name: EL
+    versions:
+    - all
+
+  - name: Fedora
+    versions:
+    - all
+
+  galaxy_tags:
+    - haproxy
+    - http
+
+dependencies: []
