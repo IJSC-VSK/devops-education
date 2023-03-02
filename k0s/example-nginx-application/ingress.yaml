@@ -7,7 +7,7 @@ metadata:
   name: example-nginx-ingress
 spec:
   rules:
-    - host: abc.apps.k8s.pdev.vsk.ru
+    - host: nginx.apps.k8s.localdomain
       http:
         paths:
           - backend:
