@@ -125,7 +125,7 @@ job.batch/ingress-nginx-admission-patch created
 ingressclass.networking.k8s.io/nginx created
 validatingwebhookconfiguration.admissionregistration.k8s.io/ingress-nginx-admission created
 ```
-#### Установка примера сервиса
+#### Установка сервиса example-nginx-application
 #####  Создание Namespace
 ```
 # kubectl create namespace example-nginx
