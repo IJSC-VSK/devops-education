@@ -1,10 +1,11 @@
 Ansible
 
-#### Запуск используя Docker
-```sh
-$ git clone https://gitlab.vsk.ru/marlin/tutorials/devops-basics.git /tmp/devops-basics
-$ chown -R 1001:1001 /tmp/devops-basics/
-$ docker run -v /home/eldar/devops-basics/ansible/:/ansible -it repo.vsk.ru:5000/marlin-platform/ansible:2.10 sh
+### Сборка и запуск
+```
+$ git clone https://github.com/IJSC-VSK/devops-education.git /tmp/devops-basics
+$ cd /tmp/devops-basics
+$ docker build . -t ansible
+$ docker run -v /tmp/devops-basics/ansible:/ansible -it ansible sh
 ```
 
 ### Примеры
